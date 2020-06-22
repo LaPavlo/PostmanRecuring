@@ -1,5 +1,3 @@
-from copy import deepcopy
-from random import randint
 import allure
 from datetime import datetime
 import requests
@@ -97,10 +95,6 @@ class Books(BaseApi):
         self.redundant_keys = ['id']
         self.books_endpoint = ProjectConstants.BOOKS_ENDPOINT
 
-    # def books_status_and_response(self):
-    #     status, received_response = self.get_status_and_response(self.books_endpoint)
-    #     return status, received_response
-    # Можно переделать на одну функцию
     def book_status_and_response(self, id=""):
         status, received_response = self.get_status_and_response(self.books_endpoint  + "/" + id)
         return status, received_response

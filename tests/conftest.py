@@ -1,10 +1,5 @@
-import json
-from api_engine.api_engine import Books, BaseApi
-from random import randint, random
-
-
+from api_engine.api_engine import  BaseApi
 import pytest
-import requests
 from faker import Factory
 from constants.constants import ProjectConstants
 
@@ -24,24 +19,6 @@ def domain(request, server):
     if request.cls is not None:
         request.cls.server_url = server_url
     return server_url
-
-@pytest.fixture(scope= "class")
-def book_id(domain):
-    book_id = str(randint(200, 999))
-    fake = Factory.create()
-    title = fake.catch_phrase()
-    author = fake.name()
-    rating = fake.year()
-    year_published = fake.year()
-    data = {
-        "id": book_id,
-        "title": title,
-        "author": author,
-        "rating": rating,
-        "year_published": year_published
-    }
-    requests.post(ProjectConstants.LOCAL_SERVER_URL +  ProjectConstants.BOOKS_ENDPOINT, data)
-    return book_id
 
 @pytest.fixture(scope= "class")
 def book_id_list(domain):
