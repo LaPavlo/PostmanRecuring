@@ -47,12 +47,32 @@ class StatusCheck(BaseChecker):
         self.status_to_check = status_to_check
         self.expected_status = expected_status
 
-    def execute(self):
-        if self.status_to_check == self.expected_status:
+    def compare_status_with_expected(self, status_to_check, expected_status, endpoint = None):
+
+        if status_to_check == expected_status:
             return True
         else:
-            return("Actual endpoint status {} is not equal to expected status {}"
-                   .format(self.status_to_check, self.expected_status))
+            if not endpoint:
+                return ("Actual endpoint status {} is not equal to expected status {}"
+                        .format(status_to_check, self.expected_status))
+            else:
+                return ("Actual {} status {} is not equal to expected status {}"
+                        .format(endpoint, status_to_check, self.expected_status))
+
+
+    def execute(self):
+        if isinstance(self.status_to_check, list) or isinstance(self.status_to_check, tuple):
+            status_check_result_string = ""
+            for status in self.status_to_check:
+                for k,v in status.items():
+                    status_check_result = self.compare_status_with_expected(v, self.expected_status, k)
+                    if status_check_result is not True:
+                        status_check_result_string = status_check_result_string + f'\n {status_check_result}'
+            if len(status_check_result_string):
+                return status_check_result_string
+            else:
+                return True
+        return self.compare_status_with_expected(self.status_to_check, self.expected_status)
 
 class CheckingBookAuthorPresenceInResponse(BaseChecker):
     def __init__(self, response_items):

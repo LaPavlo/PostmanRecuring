@@ -5,7 +5,7 @@ import json
 from faker import Factory
 
 from constants.constants import ProjectConstants
-
+from helpers.custom_exceptions import MethodNotFound
 
 class BaseApi:
 
@@ -74,6 +74,7 @@ class BaseApi:
 
 
     def delete_and_get_status(self, endpoint):
+        endpoint = str(endpoint)
         url_for_request = f'{self.domain}/{endpoint}'
         request_delete = requests.delete(url_for_request, auth=(ProjectConstants.LOGIN, ProjectConstants.PASSWORD))
         status = request_delete.status_code
@@ -88,6 +89,41 @@ class BaseApi:
         for i in extra_keys:
             response.pop(i, None)
         return response
+
+    def execute_particular_http_method_to_list_return_statuses(self, endpoint, list_of_values, method):
+
+        statuses_after_method_execution = []
+        requested_method = self.method_factory(method)
+
+        for i in list_of_values:
+            final_endpoint = f'{endpoint}/{str(i)}'
+            status = requested_method(final_endpoint)
+            # Quick workaround since delete method doesn't return response.
+            if requested_method == self.delete_and_get_status:
+                dict_with_result = {final_endpoint: status}
+            else:
+                dict_with_result = {final_endpoint: status[0]}
+
+            statuses_after_method_execution.append(dict_with_result)
+
+        return statuses_after_method_execution
+
+
+    def method_factory(self, method):
+
+        if method == 'GET':
+            return self.get_status_and_response
+        elif method == 'POST':
+            return self.post_and_get_status_and_response
+        elif method == 'PUT':
+            return self.update_and_get_status_and_response
+        elif method == 'DELETE':
+            return self.delete_and_get_status
+        else:
+            raise MethodNotFound
+
+
+
 
 class Books(BaseApi):
     def __init__(self, domain):
@@ -105,7 +141,7 @@ class Books(BaseApi):
 
     def create_book_data(self):
         fake = Factory.create()
-        title = fake.catch_phrase()
+        title = "Beer and round asses"
         author = fake.name()
         rating = fake.year()
         year_published = fake.year()
@@ -138,6 +174,25 @@ class Books(BaseApi):
             else :
                 duplicates.append(d.get("id"))
         return duplicates
+
+    def delete_list_of_books_return_statuses(self, list_of_books):
+
+        if list_of_books:
+            return self.execute_particular_http_method_to_list_return_statuses(self.books_endpoint,
+                                                                               list_of_books,
+                                                                               method='DELETE')
+        else:
+            return False
+
+    def get_list_of_books_return_statuses(self, list_of_books):
+
+        if list_of_books:
+            return self.execute_particular_http_method_to_list_return_statuses(self.books_endpoint,
+                                                                               list_of_books,
+                                                                               method='GET')
+        else:
+            return False
+
 
 
 
